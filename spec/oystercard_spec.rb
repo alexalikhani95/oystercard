@@ -23,24 +23,24 @@ describe Oystercard do
       expect { subject.top_up(1) }.to raise_error message
     end
 
-    describe '#deduct' do
-      it 'decreases the balance of the card by a specified amount' do
-        expect{ subject.deduct(1) }.to change{ subject.balance }.by -1
-      end
-    end
+    context 'has already touched in' do
+      before {subject.touch_in}
 
-    describe '#touch_out' do
-      it "changes in_journey to false" do
-        subject.touch_in
-        subject.touch_out
-        expect(subject).not_to be_in_journey
-      end
-    end
+      describe '#touch_out' do
+        it "changes in_journey to false" do
+          subject.touch_out
+          expect(subject).not_to be_in_journey
+        end
 
-    describe '#touch_in' do
-      it 'changes in_journey to true' do
-        subject.touch_in
-        expect(subject).to be_in_journey
+        it "deducts minimum fare from balance" do
+          expect{subject.touch_out}.to change{subject.balance}.by -Oystercard::MIN_FARE
+        end
+      end
+
+      describe '#touch_in' do
+        it 'changes in_journey to true' do
+          expect(subject).to be_in_journey
+        end
       end
     end
   end

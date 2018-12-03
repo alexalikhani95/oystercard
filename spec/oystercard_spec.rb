@@ -28,20 +28,27 @@ describe Oystercard do
         expect{ subject.deduct(1) }.to change{ subject.balance }.by -1
       end
     end
-  end
 
-  describe '#touch_in' do
-    it 'changes in_journey to true' do
-      subject.touch_in
-      expect(subject).to be_in_journey
+    describe '#touch_out' do
+      it "changes in_journey to false" do
+        subject.touch_in
+        subject.touch_out
+        expect(subject).not_to be_in_journey
+      end
+    end
+
+    describe '#touch_in' do
+      it 'changes in_journey to true' do
+        subject.touch_in
+        expect(subject).to be_in_journey
+      end
     end
   end
 
-  describe '#touch_out' do
-    it "changes in_journey to false" do
-      subject.touch_in
-      subject.touch_out
-      expect(subject).not_to be_in_journey
+  describe '#touch_in' do
+    it 'raises an error if the balance is too low' do
+      message = "Balance is less than #{Oystercard::MIN_FARE}"
+      expect { subject.touch_in }.to raise_error message
     end
   end
 end

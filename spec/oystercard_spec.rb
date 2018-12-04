@@ -1,6 +1,8 @@
 require 'oystercard'
 
 describe Oystercard do
+  let(:station) { double :station }
+
   it 'has a balance of zero' do
     expect(subject.balance).to eq 0
   end
@@ -9,9 +11,16 @@ describe Oystercard do
     expect(subject).not_to be_in_journey
   end
 
+  describe '#touch_in' do
+    it 'raises an error if the balance is too low' do
+      message = "Balance is less than #{Oystercard::MIN_FARE}"
+      expect { subject.touch_in(station) }.to raise_error message
+    end
+  end
+
   describe '#top_up' do
     it 'increases the balance of the card by a specified amount' do
-      expect{ subject.top_up(11) }.to change{ subject.balance }.by 11
+      expect{ subject.top_up(1) }.to change{ subject.balance }.by 1
     end
   end
 
@@ -23,33 +32,32 @@ describe Oystercard do
       expect { subject.top_up(1) }.to raise_error message
     end
 
-    describe '#touch_in' do
-      it 'changes in_journey to true' do
-        subject.touch_in
-        expect(subject).to be_in_journey
-      end
-    end
+    context 'has touched in' do
+      before { subject.touch_in(station) }
 
-    context 'has already touched in' do
-      before { subject.touch_in }
+      describe '#touch_in' do
+        it 'remembers the entry station' do
+          expect(subject.entry_station).to eq station
+        end
+      end
 
       describe '#touch_out' do
-        it 'changes in_journey to false' do
-          subject.touch_out
-          expect(subject).not_to be_in_journey
-        end
-
         it 'deducts minimum fare from balance' do
           expect{ subject.touch_out }.to change{ subject.balance }.by -Oystercard::MIN_FARE
         end
-      end
-    end
-  end
 
-  describe '#touch_in' do
-    it 'raises an error if the balance is too low' do
-      message = "Balance is less than #{Oystercard::MIN_FARE}"
-      expect { subject.touch_in }.to raise_error message
+        context 'has touched out' do
+          before { subject.touch_out }
+
+          it 'changes in_journey to false' do
+            expect(subject).not_to be_in_journey
+          end
+
+          it 'forgets the entry station' do
+            expect(subject.entry_station).to be_falsey
+          end
+        end
+      end
     end
   end
 end

@@ -1,7 +1,9 @@
 require 'oystercard'
 
 describe Oystercard do
-  let(:station) { double :station }
+  let(:entry_station) { double :station }
+  let(:exit_station) { double :station }
+  let(:journey) { {entry_station: entry_station, exit_station: exit_station} }
 
   it 'has a balance of zero' do
     expect(subject.balance).to eq 0
@@ -18,7 +20,7 @@ describe Oystercard do
   describe '#touch_in' do
     it 'raises an error if the balance is too low' do
       message = "Balance is less than #{Oystercard::MIN_FARE}"
-      expect { subject.touch_in(station) }.to raise_error message
+      expect { subject.touch_in(entry_station) }.to raise_error message
     end
   end
 
@@ -37,24 +39,32 @@ describe Oystercard do
     end
 
     context 'has touched in' do
-      before { subject.touch_in(station) }
+      before { subject.touch_in(entry_station) }
 
       describe '#touch_in' do
         it 'remembers the entry station' do
-          expect(subject.entry_station).to eq station
+          expect(subject.entry_station).to eq entry_station
         end
       end
 
       describe '#touch_out' do
         it 'deducts minimum fare from balance' do
-          expect{ subject.touch_out(station) }.to change{ subject.balance }.by -Oystercard::MIN_FARE
+          expect{ subject.touch_out(exit_station) }.to change{ subject.balance }.by -Oystercard::MIN_FARE
         end
 
         context 'has touched out' do
-          before { subject.touch_out(station) }
+          before { subject.touch_out(exit_station) }
+
+          it 'remembers the exit station' do
+            expect(subject.exit_station).to eq exit_station
+          end
 
           it 'changes in_journey to false' do
             expect(subject).not_to be_in_journey
+          end
+
+          it 'creates one journey' do
+            expect(subject.history).to include journey
           end
 
           it 'forgets the entry station' do

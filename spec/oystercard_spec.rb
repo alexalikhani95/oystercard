@@ -11,6 +11,10 @@ describe Oystercard do
     expect(subject).not_to be_in_journey
   end
 
+  it 'has an empty history by default' do
+    expect(subject.history).to be_empty
+  end
+
   describe '#touch_in' do
     it 'raises an error if the balance is too low' do
       message = "Balance is less than #{Oystercard::MIN_FARE}"
@@ -43,11 +47,11 @@ describe Oystercard do
 
       describe '#touch_out' do
         it 'deducts minimum fare from balance' do
-          expect{ subject.touch_out }.to change{ subject.balance }.by -Oystercard::MIN_FARE
+          expect{ subject.touch_out(station) }.to change{ subject.balance }.by -Oystercard::MIN_FARE
         end
 
         context 'has touched out' do
-          before { subject.touch_out }
+          before { subject.touch_out(station) }
 
           it 'changes in_journey to false' do
             expect(subject).not_to be_in_journey
